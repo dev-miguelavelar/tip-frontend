@@ -1,6 +1,6 @@
 let provider, signer, userAddress;
 
-// 🔁 Dynamically use current domain (localhost or Railway)
+// Use dynamic backend base URL (works locally + on Railway)
 const TIP_API_URL = `${window.location.origin}/tip`;
 
 let latestTipRequest = null;
@@ -33,8 +33,9 @@ tipBtn.addEventListener("click", async () => {
   }
 
   try {
-    output.textContent = "⏳ Fetching payment instructions...";
+    output.textContent = "⏳ Fetching tip details...";
     const res = await fetch(TIP_API_URL);
+    if (!res.ok) throw new Error(`Failed to fetch tip info: ${res.status}`);
     latestTipRequest = await res.json();
 
     const {
@@ -43,19 +44,24 @@ tipBtn.addEventListener("click", async () => {
       x_request_id
     } = latestTipRequest;
 
-    output.textContent = `💡 Tip Details:\n- Amount: ${amount} ${currency}\n- To: ${address}\n- Request ID: ${x_request_id}\n\n⏳ (Mocked) Sending tip...`;
+    output.textContent =
+      `💡 Tip Details:\n` +
+      `- Amount: ${amount} ${currency}\n` +
+      `- To: ${address}\n` +
+      `- Request ID: ${x_request_id}\n\n` +
+      `⏳ (Mocked) Sending tip...`;
 
-    // TODO: Uncomment this section for real USDC transfer when ready
+    // TODO: Uncomment when ready to send real USDC using MetaMask
     /*
     const abi = ["function transfer(address to, uint256 amount) public returns (bool)"];
     const contract = new ethers.Contract(USDC_ADDRESS, abi, signer);
-    const amountInDecimals = ethers.BigNumber.from("1000000"); // 1 USDC (6 decimals)
+    const amountInDecimals = ethers.BigNumber.from("1000000"); // 1 USDC
     const tx = await contract.transfer(address, amountInDecimals);
     await tx.wait();
     output.textContent = `✅ Tip sent! TX Hash: ${tx.hash}`;
     */
 
-    // Simulate success (mock)
+    // Simulate delay and success
     await new Promise(resolve => setTimeout(resolve, 1500));
     output.textContent = `✅ (Mocked) Tip sent to ${address} (${amount} ${currency})`;
 

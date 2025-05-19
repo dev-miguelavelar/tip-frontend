@@ -1,7 +1,9 @@
 let provider, signer, userAddress;
 
-const USDC_ADDRESS = "0xd35cceeAD182dcee0F148EbaC9447DA2c4D449c4"; // USDC on Sepolia (keep for when ready)
-const RECIPIENT = "yourWallet";    // Your wallet address
+// 🔁 Dynamically use current domain (localhost or Railway)
+const TIP_API_URL = `${window.location.origin}/tip`;
+
+let latestTipRequest = null;
 
 const output = document.getElementById("output");
 const connectBtn = document.getElementById("connectBtn");
@@ -31,25 +33,33 @@ tipBtn.addEventListener("click", async () => {
   }
 
   try {
-    // Mock transfer behavior
-    output.textContent = "⏳ (Mocked) Sending tip...";
+    output.textContent = "⏳ Fetching payment instructions...";
+    const res = await fetch(TIP_API_URL);
+    latestTipRequest = await res.json();
 
-    // TODO: Uncomment this when you have test ETH to pay gas
+    const {
+      price: { amount, currency },
+      payment: { address },
+      x_request_id
+    } = latestTipRequest;
+
+    output.textContent = `💡 Tip Details:\n- Amount: ${amount} ${currency}\n- To: ${address}\n- Request ID: ${x_request_id}\n\n⏳ (Mocked) Sending tip...`;
+
+    // TODO: Uncomment this section for real USDC transfer when ready
     /*
     const abi = ["function transfer(address to, uint256 amount) public returns (bool)"];
     const contract = new ethers.Contract(USDC_ADDRESS, abi, signer);
-    const amount = ethers.BigNumber.from("1000000"); // 1 USDC (6 decimals)
-
-    const tx = await contract.transfer(RECIPIENT, amount);
+    const amountInDecimals = ethers.BigNumber.from("1000000"); // 1 USDC (6 decimals)
+    const tx = await contract.transfer(address, amountInDecimals);
     await tx.wait();
     output.textContent = `✅ Tip sent! TX Hash: ${tx.hash}`;
     */
 
-    // Simulated delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Simulate success (mock)
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    output.textContent = `✅ (Mocked) Tip sent to ${address} (${amount} ${currency})`;
 
-    output.textContent = "✅ (Mocked) Tip sent successfully!";
   } catch (err) {
-    output.textContent = `❌ Error (mocked): ${err.message}`;
+    output.textContent = `❌ Error: ${err.message}`;
   }
 });
